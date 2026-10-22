@@ -1,0 +1,284 @@
+﻿
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de usuarios</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 25px;
+            color: #243447;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .panel {
+            background: white;
+            padding: 22px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px #0001;
+        }
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        button, .salir {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 5px;
+            background: #2864dc;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .eliminar { background: #c62828; }
+        .modificar { background: #188653; }
+
+        .tabla-contenedor { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #243b55;
+            color: white;
+        }
+
+        td form { margin: 5px 0; }
+
+        td input { min-width: 120px; }
+
+        .busqueda {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .busqueda input {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .panel { padding: 14px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="contenedor">
+
+    <header>
+        <div>
+            <h1>Administración de usuarios</h1>
+            <p>Bienvenido, {{ session["usuario"] }}</p>
+        </div>
+
+        <a class="salir" href="{{ url_for('salir') }}">
+            Cerrar sesión
+        </a>
+    </header>
+
+    <section class="panel">
+        <h2>Registrar usuario</h2>
+
+        <form action="{{ url_for('registrar') }}" method="POST">
+            <div class="formulario">
+
+                <div>
+                    <label for="usuario">Usuario</label>
+                    <input id="usuario" name="usuario"
+                           maxlength="35" required>
+                </div>
+
+                <div>
+                    <label for="clave">Contraseña</label>
+                    <input id="clave" name="clave" type="password"
+                           maxlength="35" required>
+                </div>
+
+                <div>
+                    <label for="nombre">Nombre completo</label>
+                    <input id="nombre" name="nombre"
+                           maxlength="85" required>
+                </div>
+
+                <div>
+                    <label for="direccion">Dirección</label>
+                    <input id="direccion" name="direccion"
+                           maxlength="100" required>
+                </div>
+
+                <div>
+                    <label for="telefono">Teléfono</label>
+                    <input id="telefono" name="telefono"
+                           maxlength="9" required>
+                </div>
+
+            </div>
+
+            <p>
+                <button type="submit">Registrar usuario</button>
+            </p>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Buscar usuarios</h2>
+
+        <form class="busqueda" action="{{ url_for('buscar') }}"
+              method="GET">
+            <input type="text" name="q"
+                   placeholder="Buscar por usuario o nombre">
+
+            <button type="submit">Buscar</button>
+
+            <a class="salir" href="{{ url_for('usuarios') }}">
+                Mostrar todos
+            </a>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Usuarios registrados</h2>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Dirección</th>
+                        <th>Teléfono</th>
+                        <th>Modificar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u.idUsuario }}</td>
+                        <td>{{ u.usuario }}</td>
+                        <td>{{ u.nombre }}</td>
+                        <td>{{ u.direccion }}</td>
+                        <td>{{ u.telefono }}</td>
+
+                        <td>
+                            <details>
+                                <summary>Editar</summary>
+
+                                <form
+                                    action="{{ url_for('modificar', idusuario=u.idUsuario) }}"
+                                    method="POST">
+
+                                    <label>Usuario</label>
+                                    <input name="usuario"
+                                           value="{{ u.usuario }}"
+                                           maxlength="35" required>
+
+                                    <label>Contraseña nueva</label>
+                                    <input name="clave" type="password"
+                                           maxlength="35" required>
+
+                                    <label>Nombre</label>
+                                    <input name="nombre"
+                                           value="{{ u.nombre }}"
+                                           maxlength="85" required>
+
+                                    <label>Dirección</label>
+                                    <input name="direccion"
+                                           value="{{ u.direccion }}"
+                                           maxlength="100" required>
+
+                                    <label>Teléfono</label>
+                                    <input name="telefono"
+                                           value="{{ u.telefono }}"
+                                           maxlength="9" required>
+
+                                    <button class="modificar" type="submit">
+                                        Guardar cambios
+                                    </button>
+                                </form>
+                            </details>
+                        </td>
+
+                        <td>
+                            <form
+                                action="{{ url_for('eliminar', idusuario=u.idUsuario) }}"
+                                method="POST"
+                                onsubmit="return confirm('Â¿Seguro que deseas eliminar este usuario?')">
+
+                                <button class="eliminar" type="submit">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                {% else %}
+                    <tr>
+                        <td colspan="7">
+                            No hay usuarios registrados.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</body>
+</html>
+
+
+
